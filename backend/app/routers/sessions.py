@@ -164,3 +164,26 @@ def get_session_detail(session_id: int, db: Session = Depends(get_db)):
         "completed_at": session.completed_at,
         "detections": session.detections
     }
+
+
+@router.delete("/{session_id}")
+def delete_session(session_id: int, db: Session = Depends(get_db)):
+    session = db.query(ObservationSession).filter(ObservationSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Sesi tidak ditemukan")
+        
+    try:
+        # Hapus deteksi yang terkait dengan session ini (manual cascade)
+        db.query(Detection).filter(Detection.session_id == session_id).delete()
+        
+        # Hapus session
+        db.delete(session)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Gagal menghapus data dari database: {str(e)}")
+        
+    return {
+        "status": "success", 
+        "message": f"Sesi pengamatan dengan ID {session_id} berhasil dihapus permanen."
+    }
