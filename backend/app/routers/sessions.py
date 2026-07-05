@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from datetime import datetime
 import random
 
@@ -58,14 +59,108 @@ def upload_and_detect_photo(
     db.commit()
     db.refresh(new_detection)
     
+    total_buah = semi_ripe + nearly_ripe + ripe
+    persen_semi_ripe = (semi_ripe / total_buah) * 100 if total_buah > 0 else 0
+    persen_nearly_ripe = (nearly_ripe / total_buah) * 100 if total_buah > 0 else 0
+    persen_ripe = (ripe / total_buah) * 100 if total_buah > 0 else 0
+    
     return {
         "status": "success",
         "session_id": session_id,
         "semi_ripe": semi_ripe,
         "nearly_ripe": nearly_ripe,
         "ripe": ripe,
+        "persen_semi_ripe": persen_semi_ripe,
+        "persen_nearly_ripe": persen_nearly_ripe,
+        "persen_ripe": persen_ripe,
         "confidence": confidence,
         "boxes": [
             {"box": [50, 50, 150, 200], "label": "ripe"}
         ]
+    }
+
+
+@router.post("/{session_id}/finalize")
+def finalize_session(session_id: int, db: Session = Depends(get_db)):
+    session = db.query(ObservationSession).filter(ObservationSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Sesi tidak ditemukan")
+        
+    detections = db.query(Detection).filter(Detection.session_id == session_id).all()
+    if not detections:
+        raise HTTPException(status_code=400, detail="Belum ada data deteksi pada sesi ini")
+        
+    n_semi = sum(d.semi_ripe_count for d in detections if d.semi_ripe_count)
+    n_nearly = sum(d.nearly_ripe_count for d in detections if d.nearly_ripe_count)
+    n_ripe = sum(d.ripe_count for d in detections if d.ripe_count)
+    n_total = n_semi + n_nearly + n_ripe
+    
+    if n_total == 0:
+        raise HTTPException(status_code=400, detail="Total objek cabai terdeteksi adalah 0, tidak bisa dikalkulasi")
+        
+    p_semi = (n_semi / n_total) * 100
+    p_nearly = (n_nearly / n_total) * 100
+    p_ripe = (n_ripe / n_total) * 100
+    
+    hrs = (p_semi * 0.2) + (p_nearly * 0.6) + (p_ripe * 1.0)
+    
+    if hrs >= 80:
+        harvest_status = "Siap Panen"
+        recommendation = "Pemetikan disarankan segera dilakukan untuk menjaga kualitas optimal buah cabai di lahan."
+        shelf_life = 3
+    elif hrs >= 60:
+        harvest_status = "Hampir Siap Panen"
+        recommendation = "Lakukan monitoring lanjutan dalam 2-3 hari ke depan sebelum melakukan pemanenan massal."
+        shelf_life = 5
+    else:
+        harvest_status = "Belum Siap Panen"
+        recommendation = "Buah cabai didominasi fase awal pematangan. Pemanenan belum disarankan."
+        shelf_life = 7
+        
+    session.hrs = hrs
+    session.harvest_status = harvest_status
+    session.recommendation = recommendation
+    session.estimated_shelf_life = shelf_life
+    session.total_semi_ripe = n_semi
+    session.total_nearly_ripe = n_nearly
+    session.total_ripe = n_ripe
+    session.status = "COMPLETED"
+    session.completed_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(session)
+    
+    return session
+
+
+@router.get("")
+def get_sessions(db: Session = Depends(get_db)):
+    sessions = db.query(ObservationSession)\
+                 .filter(ObservationSession.status == "COMPLETED")\
+                 .order_by(desc(ObservationSession.created_at))\
+                 .all()
+    return sessions
+
+
+@router.get("/{session_id}")
+def get_session_detail(session_id: int, db: Session = Depends(get_db)):
+    session = db.query(ObservationSession).filter(ObservationSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Sesi tidak ditemukan")
+        
+    return {
+        "id": session.id,
+        "session_name": session.session_name,
+        "status": session.status,
+        "sample_quality": session.sample_quality,
+        "hrs": session.hrs,
+        "harvest_status": session.harvest_status,
+        "estimated_shelf_life": session.estimated_shelf_life,
+        "total_semi_ripe": session.total_semi_ripe,
+        "total_nearly_ripe": session.total_nearly_ripe,
+        "total_ripe": session.total_ripe,
+        "recommendation": session.recommendation,
+        "created_at": session.created_at,
+        "completed_at": session.completed_at,
+        "detections": session.detections
     }

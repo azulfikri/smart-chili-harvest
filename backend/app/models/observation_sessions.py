@@ -22,9 +22,18 @@ class ObservationSession(Base):
 
     estimated_shelf_life = Column(Integer, nullable=True)
 
+    total_semi_ripe = Column(Integer, nullable=True)
+
+    total_nearly_ripe = Column(Integer, nullable=True)
+
+    total_ripe = Column(Integer, nullable=True)
+
+    recommendation = Column(String, nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
 
     completed_at = Column(DateTime, nullable=True)
+
 
     detections = relationship(
         "Detection",
