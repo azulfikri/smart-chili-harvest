@@ -24,6 +24,11 @@ const router = createRouter({
       path: '/history',
       name: 'history',
       component: HistoryView
+    },
+    {
+      path: '/sessions/:id',
+      name: 'session-detail',
+      component: () => import('../views/SessionDetailView.vue')
     }
   ]
 })

@@ -126,7 +126,7 @@ const handleFinalize = async () => {
   try {
     await axios.post(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}/finalize`)
     // Arahkan ke history view setelah sukses finalize
-    router.push('/history')
+    router.push(`/sessions/${currentSessionId.value}`)
   } catch (error) {
     console.error('Error finalizing session:', error)
     alert('Gagal mengkalkulasi HRS. Pastikan backend aktif.')
