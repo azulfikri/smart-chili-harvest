@@ -66,6 +66,19 @@ const gaugeBgClass = computed(() => {
 
 <template>
   <div class="p-6 flex flex-col min-h-[calc(100vh-4rem)]">
+    <!-- Top Header Bar -->
+    <header class="flex items-center gap-3 mb-4">
+      <button 
+        @click="router.push('/history')" 
+        class="p-2 -ml-2 rounded-full hover:bg-gray-100 active:bg-bg-gray-200 transition-colors text-gray-700"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+      <h1 class="text-xl font-bold text-gray-900">Detail Pengamatan</h1>
+    </header>
+
     <!-- Loading State -->
     <div v-if="isLoading" class="grow flex justify-center items-center">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
