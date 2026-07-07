@@ -5,10 +5,12 @@ import axios from 'axios'
 
 const router = useRouter()
 
+// Sync dengan schema Backend JSON yang baru
 interface HarvestSession {
   id: number;
-  avg_hrs_score: number | null;
-  status: string | null;
+  session_name: string;
+  hrs: number | null;
+  harvest_status: string | null;
 }
 
 // State
@@ -33,11 +35,14 @@ const fetchLatestSession = async () => {
   try {
     isLoading.value = true
     const response = await axios.get('http://127.0.0.1:8000/api/sessions')
-    const sessions = response.data
     
-    if (sessions && sessions.length > 0) {
-      // Assuming the backend returns sorted data or we take the first one
-      latestSession.value = sessions[0]
+    // Perbaikan Logika Reaktif Vue 3 (.value checking)
+    if (response.data && response.data.length > 0) {
+      // Trik Debugging (Console Log)
+      console.log("Data Sesi Terakhir di Dashboard:", response.data[0])
+      
+      // Ambil indeks ke-0 sebagai sesi terbaru
+      latestSession.value = response.data[0]
     } else {
       latestSession.value = null
     }
@@ -77,16 +82,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-6 flex flex-col min-h-[calc(100vh-4rem)]">
+  <div class="p-4 flex flex-col min-h-[calc(100vh-4rem)]">
     <!-- Header -->
-    <header class="mb-8 mt-4">
+    <header class="mb-4 mt-2 px-1">
       <h1 class="text-3xl font-bold text-gray-900">Halo, Pak Tani 👋</h1>
       <p class="text-sm text-gray-500 mt-1">{{ currentDate }}</p>
     </header>
 
     <!-- Card Pengamatan Terakhir -->
-    <section class="grow">
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+    <section class="grow flex flex-col">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-1">
         <h2 class="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">Pengamatan Terakhir</h2>
         
         <div v-if="isLoading" class="flex justify-center items-center py-6">
@@ -94,45 +99,47 @@ onMounted(() => {
         </div>
         
         <div v-else-if="!latestSession" class="text-center py-6">
-          <p class="text-gray-500 italic">Belum ada riwayat pengamatan lahan.</p>
+          <p class="text-gray-500 italic text-sm">Belum ada riwayat pengamatan lahan.</p>
         </div>
         
         <div v-else class="flex flex-col gap-3">
+          <div class="font-bold text-gray-800 text-[15px] truncate border-b border-gray-50 pb-2 mb-1">
+            {{ latestSession.session_name }}
+          </div>
+          
           <div class="flex justify-between items-center">
-            <span class="text-gray-700 font-medium">Skor HRS:</span>
+            <span class="text-gray-700 font-medium text-sm">Skor HRS:</span>
             <span class="text-xl font-bold text-gray-900">
-              {{ latestSession.avg_hrs_score !== null && latestSession.avg_hrs_score !== undefined ? Number(latestSession.avg_hrs_score).toFixed(1) + '%' : '-' }}
+              {{ latestSession.hrs !== null && latestSession.hrs !== undefined ? Number(latestSession.hrs).toFixed(1) + '%' : '-' }}
             </span>
           </div>
           
-          <div class="flex justify-between items-center mt-2">
-            <span class="text-gray-700 font-medium">Status:</span>
+          <div class="flex justify-between items-center mt-1">
+            <span class="text-gray-700 font-medium text-sm">Status:</span>
             <span 
-              class="px-3 py-1 text-xs font-bold rounded-md"
+              class="px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wide inline-block"
               :class="{
-                'bg-green-100 text-green-700': latestSession.status === 'Siap Panen' || ((latestSession.avg_hrs_score ?? 0) >= 80),
-                'bg-yellow-100 text-yellow-700': latestSession.status === 'Belum Panen' || (latestSession.avg_hrs_score !== null && latestSession.avg_hrs_score < 80)
+                'bg-green-100 text-green-700': latestSession.harvest_status === 'Siap Panen' || ((latestSession.hrs ?? 0) >= 80),
+                'bg-orange-100 text-orange-700': latestSession.harvest_status === 'Hampir Siap Panen' || ((latestSession.hrs ?? 0) >= 60 && (latestSession.hrs ?? 0) < 80),
+                'bg-red-100 text-red-700': latestSession.harvest_status === 'Belum Siap Panen' || ((latestSession.hrs ?? 0) < 60)
               }"
             >
-              {{ latestSession.status || ((latestSession.avg_hrs_score ?? 0) >= 80 ? 'Siap Panen' : 'Belum Panen') }}
+              {{ latestSession.harvest_status || 'Belum Siap Panen' }}
             </span>
-          </div>
-          <div class="text-xs text-gray-400 mt-2 text-right">
-            Sesi ID: {{ latestSession.id }}
           </div>
         </div>
       </div>
     </section>
 
     <!-- Call to Action (Bottom Area) -->
-    <div class="mt-8 mb-6">
+    <div class="mt-6 mb-4">
       <button 
         @click="startNewSession"
         :disabled="isCreatingSession"
         class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
       >
         <span v-if="isCreatingSession" class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
-        <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+        <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
         {{ isCreatingSession ? 'Memulai...' : 'Mulai Pengamatan Baru' }}

@@ -5,7 +5,19 @@ const route = useRoute()
 </script>
 
 <template>
-  <div class="max-w-md mx-auto min-h-screen bg-gray-50 shadow-xl relative pb-16">
+  <div class="max-w-md mx-auto min-h-screen bg-gray-50 shadow-xl relative pb-16 pt-14">
+    
+    <!-- Global Top Header -->
+    <header class="absolute top-0 left-0 right-0 h-14 bg-white border-b border-gray-100 flex items-center px-4 z-40">
+      <div class="flex items-center gap-2">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-green-600">
+          <path d="M17.5 2.5C13.5 2.5 10 5.5 8 9.5C6 13.5 5 18 5 18C5 18 9.5 17 13.5 15C17.5 13 20.5 9.5 20.5 5.5C20.5 4 19 2.5 17.5 2.5Z" />
+          <path d="M8 9.5C10 5.5 13.5 2.5 17.5 2.5C14.5 3.5 12.5 6 11 8.5C9.5 11 8.5 14.5 5 18C5 18 5.5 13 8 9.5Z" fill="white" opacity="0.3" />
+        </svg>
+        <span class="text-lg font-black text-gray-800 tracking-tight">Smart<span class="text-green-600">Harvest</span></span>
+      </div>
+    </header>
+
     <RouterView />
 
     <!-- Fixed Bottom Navigation Bar -->
