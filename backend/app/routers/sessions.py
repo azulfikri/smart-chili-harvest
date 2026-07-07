@@ -27,6 +27,9 @@ def create_session(db: Session = Depends(get_db)):
     
     return new_session
 
+import shutil
+import os
+import uuid
 
 @router.post("/{session_id}/detect")
 def upload_and_detect_photo(
@@ -40,9 +43,22 @@ def upload_and_detect_photo(
     ripe = random.randint(1, 5)
     confidence = round(random.uniform(0.75, 0.95), 2)
     
-    # Path mock
-    original_path = f"uploads/{file.filename}"
-    processed_path = f"uploads/processed_{file.filename}"
+    os.makedirs("uploads", exist_ok=True)
+    
+    # Path mock - gunakan UUID agar nama file unik (mencegah overwriting/caching)
+    unique_id = str(uuid.uuid4())[:8]
+    ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+    safe_filename = f"{unique_id}.{ext}"
+    
+    original_path = f"uploads/{safe_filename}"
+    processed_path = f"uploads/processed_{safe_filename}"
+    
+    # Simpan file yang diupload ke disk
+    with open(original_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    # Copy file original sebagai mock untuk "processed_image"
+    shutil.copy(original_path, processed_path)
     
     # Simpan ke tabel detections
     new_detection = Detection(
@@ -139,7 +155,32 @@ def get_sessions(db: Session = Depends(get_db)):
                  .filter(ObservationSession.status == "COMPLETED")\
                  .order_by(desc(ObservationSession.created_at))\
                  .all()
-    return sessions
+                 
+    result = []
+    for session in sessions:
+        thumbnail = None
+        if session.detections and len(session.detections) > 0:
+            thumbnail = f"http://127.0.0.1:8000/{session.detections[0].processed_image}"
+            
+        session_dict = {
+            "id": session.id,
+            "session_name": session.session_name,
+            "status": session.status,
+            "sample_quality": session.sample_quality,
+            "hrs": session.hrs,
+            "harvest_status": session.harvest_status,
+            "estimated_shelf_life": session.estimated_shelf_life,
+            "total_semi_ripe": session.total_semi_ripe,
+            "total_nearly_ripe": session.total_nearly_ripe,
+            "total_ripe": session.total_ripe,
+            "recommendation": session.recommendation,
+            "created_at": session.created_at,
+            "completed_at": session.completed_at,
+            "thumbnail_image": thumbnail
+        }
+        result.append(session_dict)
+        
+    return result
 
 
 @router.get("/{session_id}")
