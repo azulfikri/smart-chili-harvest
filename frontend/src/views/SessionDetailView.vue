@@ -74,7 +74,7 @@ const gaugeSubText = computed(() => {
 <template>
   <div class="flex flex-col min-h-[calc(100vh-5rem)] bg-slate-50 pb-6">
     <!-- TOP NAVIGATION BAR -->
-    <header class="bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-center sticky top-0 z-40 shadow-sm relative">
+    <header class="bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-center sticky top-0 z-40 shadow-sm">
       <button 
         @click="router.push('/history')" 
         class="absolute left-4 p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700"

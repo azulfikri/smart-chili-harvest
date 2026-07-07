@@ -238,7 +238,7 @@ const handleCancelSession = async () => {
     >
 
     <!-- Top Header Bar -->
-    <div class="flex items-center justify-center px-4 py-3 relative bg-white border-b border-emerald-100/50 sticky top-0 z-40">
+    <div class="flex items-center justify-center px-4 py-3 bg-white border-b border-emerald-100/50 sticky top-0 z-40">
       <button 
         @click="router.push('/dashboard')" 
         class="absolute left-4 p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700"
