@@ -6,23 +6,26 @@ const route = useRoute()
 
 <template>
   <!-- Background Global & Wrapper -->
-  <div class="max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl shadow-slate-200 relative pb-20 pt-14">
+  <div class="max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl shadow-slate-200 relative">
     
-    <!-- Global Top Header -->
-    <header class="absolute top-0 left-0 right-0 h-14 bg-white border-b border-slate-100 flex items-center px-4 z-40">
+    <!-- Global Top Header (Glassmorphism - Senada Bottom Nav) -->
+    <header class="sticky top-0 h-14 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.03)] flex justify-center items-center px-4 z-40">
       <div class="flex items-center gap-2">
-        <svg viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-emerald-600">
-          <path d="M17.5 2.5C13.5 2.5 10 5.5 8 9.5C6 13.5 5 18 5 18C5 18 9.5 17 13.5 15C17.5 13 20.5 9.5 20.5 5.5C20.5 4 19 2.5 17.5 2.5Z" />
-          <path d="M8 9.5C10 5.5 13.5 2.5 17.5 2.5C14.5 3.5 12.5 6 11 8.5C9.5 11 8.5 14.5 5 18C5 18 5.5 13 8 9.5Z" fill="white" opacity="0.3" />
+        <!-- Logo SVG Daun -->
+        <svg viewBox="0 0 32 32" class="w-7 h-7" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="16" fill="#059669" />
+          <path d="M22 10C18.5 10 15.5 12.5 14 15.5C12.5 18.5 12 22 12 22C12 22 15.5 21.2 18.5 19.5C21.5 17.8 24 14.5 24 11.5C24 10.5 23 10 22 10Z" fill="white"/>
+          <path d="M14 15.5C15.5 12.5 18.5 10 22 10C19.5 10.8 17.8 12.8 16.5 14.8C15.2 16.8 14.5 19.5 12 22C12 22 12.5 17.5 14 15.5Z" fill="white" opacity="0.4"/>
         </svg>
-        <span class="text-lg font-black text-slate-800 tracking-tight">Smart<span class="text-emerald-600">Harvest</span></span>
+        <!-- Nama Aplikasi -->
+        <span class="text-base font-bold text-slate-800 tracking-tight">Smart<span class="text-emerald-600">Harvest</span></span>
       </div>
     </header>
 
     <RouterView />
 
     <!-- Glassmorphism Bottom Navigation Bar -->
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/80 backdrop-blur-md border-t border-slate-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 flex justify-around items-center h-20 pb-4 pt-3">
+    <nav class="sticky bottom-0 bg-white/80 backdrop-blur-md border-t border-slate-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 flex justify-around items-center h-20 pb-4 pt-3">
       
       <!-- Dashboard Button -->
       <RouterLink 
@@ -33,7 +36,7 @@ const route = useRoute()
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
         </svg>
-        <span class="text-xs font-medium tracking-wide">Dashboard</span>
+        <span class="text-xs font-medium tracking-wide">Beranda</span>
       </RouterLink>
 
       <!-- Deteksi Button -->
