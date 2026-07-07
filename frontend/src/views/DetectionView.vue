@@ -17,6 +17,7 @@ interface DetectionResult {
   persen_nearly_ripe: number;
   persen_ripe: number;
   confidence: number;
+  processed_image?: string;
   boxes: Array<{ box: number[]; label: string }>;
 }
 
@@ -31,13 +32,71 @@ const isFinalizing = ref(false)
 const previewImageUrl = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
+// Helper untuk menampilkan processed_image dari backend jika ada, fallback ke original
+import { computed } from 'vue'
+const displayImageUrl = computed(() => {
+  if (currentPhotoData.value && currentPhotoData.value.processed_image) {
+    const pImage = currentPhotoData.value.processed_image;
+    // Jika berupa relative URL dari backend
+    if (pImage.startsWith('/')) {
+      return `http://127.0.0.1:8000${pImage}`;
+    }
+    // Jika berupa base64 string
+    if (pImage.length > 100 && !pImage.startsWith('http') && !pImage.startsWith('data:')) {
+      return `data:image/jpeg;base64,${pImage}`;
+    }
+    return pImage;
+  }
+  return previewImageUrl.value;
+})
+
 // Lifecycle Hook
-onMounted(() => {
-  const sessionId = localStorage.getItem('activeSessionId')
+onMounted(async () => {
+  let sessionId = localStorage.getItem('activeSessionId')
   if (!sessionId) {
-    alert('Sesi tidak valid! Kembali ke Dashboard.')
-    router.push('/dashboard')
-    return
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/sessions')
+      const newSession = response.data
+      if (newSession && newSession.id) {
+        const newId = newSession.id.toString()
+        localStorage.setItem('activeSessionId', newId)
+        sessionId = newId
+      } else {
+        throw new Error('Invalid session response')
+      }
+    } catch (error) {
+      console.error('Error auto-creating session:', error)
+      alert('Gagal membuat sesi pengamatan. Kembali ke Dashboard.')
+      router.push('/dashboard')
+      return
+    }
+  } else {
+    // Sinkronisasi progress jika sesi sudah ada
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/api/sessions/${sessionId}`)
+      const existingSession = response.data
+      if (existingSession && existingSession.detections) {
+        photoCounter.value = existingSession.detections.length
+      }
+    } catch (error) {
+      console.error('Error restoring session progress:', error)
+      // Jika error (misal 404 Not Found), bersihkan storage karena sesi invalid/sudah dihapus
+      localStorage.removeItem('activeSessionId')
+      sessionId = null
+      
+      // Auto-create session baru
+      try {
+        const response = await axios.post('http://127.0.0.1:8000/api/sessions')
+        const newSession = response.data
+        if (newSession && newSession.id) {
+          const newId = newSession.id.toString()
+          localStorage.setItem('activeSessionId', newId)
+          sessionId = newId
+        }
+      } catch (e) {
+        console.error('Error auto-creating session after 404:', e)
+      }
+    }
   }
   currentSessionId.value = sessionId
 })
@@ -134,6 +193,32 @@ const handleFinalize = async () => {
     isFinalizing.value = false
   }
 }
+
+// Handler Batal Pengamatan (Discard/Cancel Session)
+const handleCancelSession = async () => {
+  if (!currentSessionId.value) return
+  
+  const isConfirmed = confirm("Apakah Anda yakin ingin membatalkan pengamatan ini? Seluruh progres foto saat ini akan dihapus permanen.")
+  if (!isConfirmed) return
+
+  try {
+    await axios.delete(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}`)
+    
+    // Bersihkan data di localStorage
+    localStorage.removeItem('activeSessionId')
+    
+    // Reset state lokal
+    photoCounter.value = 0
+    detectionsList.value = []
+    currentPhotoData.value = null
+    
+    // Alihkan rute ke dashboard
+    router.push('/dashboard')
+  } catch (error) {
+    console.error('Error cancelling session:', error)
+    alert('Gagal membatalkan pengamatan. Pastikan backend aktif.')
+  }
+}
 </script>
 
 <template>
@@ -175,10 +260,10 @@ const handleFinalize = async () => {
     <!-- ============================================ -->
     <div v-if="isViewingFeedback" class="grow flex flex-col px-4 pb-4">
       
-      <!-- Preview Foto -->
+      <!-- Preview Foto (Menampilkan Gambar Hasil Proses jika ada) -->
       <div class="w-full rounded-2xl shadow-md border border-slate-100 overflow-hidden bg-slate-900">
-        <div class="w-full aspect-[3/4] relative flex items-center justify-center">
-          <img v-if="previewImageUrl" :src="previewImageUrl" class="w-full h-full object-contain" alt="Captured Chili" />
+        <div class="w-full aspect-3/4 relative flex items-center justify-center">
+          <img v-if="displayImageUrl" :src="displayImageUrl" class="w-full h-full object-contain" alt="Captured Chili" />
           
           <!-- Overlay Success Indicator -->
           <div v-if="currentPhotoData && currentPhotoData.status === 'success'" class="absolute top-3 right-3 bg-emerald-500 text-white px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide flex items-center gap-1 shadow-lg">
@@ -190,24 +275,34 @@ const handleFinalize = async () => {
         </div>
       </div>
 
-      <!-- Mini Grid Statistik 3 Kolom -->
-      <div v-if="currentPhotoData" class="bg-white rounded-2xl shadow-sm border border-slate-100 mt-4 overflow-hidden">
+      <!-- Mini Grid Statistik 3 Kolom + Confidence -->
+      <div v-if="currentPhotoData" class="bg-white rounded-2xl shadow-sm border border-slate-100 mt-4 overflow-hidden relative">
+        <!-- Akurasi AI (Confidence) -->
+        <div class="absolute top-2.5 right-3 text-[9px] font-bold tracking-widest uppercase flex items-center gap-1"
+             :class="currentPhotoData.confidence >= 80 ? 'text-emerald-600' : (currentPhotoData.confidence >= 50 ? 'text-amber-500' : 'text-rose-500')">
+          <span>Confidence:</span>
+          <span>{{ currentPhotoData.confidence?.toFixed(1) || 0 }}%</span>
+        </div>
+        
         <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-center pt-3 pb-2">Hasil Deteksi AI</p>
         <div class="grid grid-cols-3 divide-x divide-slate-100">
           <!-- Semi-ripe -->
           <div class="flex flex-col items-center py-3">
             <span class="text-lg font-bold text-slate-800">{{ currentPhotoData.semi_ripe }}</span>
-            <span class="text-[10px] font-medium text-amber-500 uppercase tracking-wider mt-0.5">Semi-ripe</span>
+            <span class="text-[10px] font-medium text-amber-500 uppercase tracking-wider mt-0.5 mb-1">Semi-ripe</span>
+            <span class="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">{{ currentPhotoData.persen_semi_ripe?.toFixed(1) || 0 }}%</span>
           </div>
           <!-- Nearly-ripe -->
           <div class="flex flex-col items-center py-3">
             <span class="text-lg font-bold text-slate-800">{{ currentPhotoData.nearly_ripe }}</span>
-            <span class="text-[10px] font-medium text-orange-500 uppercase tracking-wider mt-0.5">Nearly-ripe</span>
+            <span class="text-[10px] font-medium text-orange-500 uppercase tracking-wider mt-0.5 mb-1">Nearly-ripe</span>
+            <span class="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">{{ currentPhotoData.persen_nearly_ripe?.toFixed(1) || 0 }}%</span>
           </div>
           <!-- Ripe -->
           <div class="flex flex-col items-center py-3">
             <span class="text-lg font-bold text-slate-800">{{ currentPhotoData.ripe }}</span>
-            <span class="text-[10px] font-medium text-rose-600 uppercase tracking-wider mt-0.5">Ripe</span>
+            <span class="text-[10px] font-medium text-rose-600 uppercase tracking-wider mt-0.5 mb-1">Ripe</span>
+            <span class="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">{{ currentPhotoData.persen_ripe?.toFixed(1) || 0 }}%</span>
           </div>
         </div>
       </div>
@@ -317,6 +412,18 @@ const handleFinalize = async () => {
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         {{ isFinalizing ? 'Menghitung Data...' : (photoCounter < 7 ? `Kurang ${7 - photoCounter} Foto Lagi` : 'Hitung Kesiapan Panen (HRS)') }}
+      </button>
+
+      <!-- Tombol Batal Pengamatan -->
+      <button
+        v-if="photoCounter > 0"
+        @click="handleCancelSession"
+        class="w-full border border-red-200 text-red-600 hover:bg-red-50 bg-white font-semibold rounded-xl text-sm py-3 px-6 mt-4 transition-all duration-200 active:scale-[0.98] cursor-pointer flex justify-center items-center gap-2"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.145 0c-.167.04-.334.08-.5.12m-14.145 0c.167.04.334.08.5.12m14.145 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+        </svg>
+        Batal Pengamatan
       </button>
     </div>
   </div>
