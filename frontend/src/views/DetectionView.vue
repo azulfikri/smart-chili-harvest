@@ -238,10 +238,10 @@ const handleCancelSession = async () => {
     >
 
     <!-- Top Header Bar -->
-    <div class="flex items-center justify-between px-4 py-3">
+    <div class="flex items-center justify-center px-4 py-3 relative bg-white border-b border-emerald-100/50 sticky top-0 z-40">
       <button 
         @click="router.push('/dashboard')" 
-        class="p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700"
+        class="absolute left-4 p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -250,12 +250,12 @@ const handleCancelSession = async () => {
       <h1 class="text-base font-bold text-slate-800">Pemindaian AI</h1>
       <!-- Floating Pill Counter -->
       <div 
-        class="px-3 py-1 rounded-full text-xs font-semibold border"
+        class="absolute right-4 px-2.5 py-1 rounded-full text-[10px] font-bold border"
         :class="photoCounter >= 7 
           ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-          : 'bg-slate-100 text-slate-600 border-slate-200'"
+          : 'bg-slate-50 text-slate-500 border-slate-200'"
       >
-        <span :class="{'text-emerald-600 font-bold': photoCounter >= 7}">{{ photoCounter }}</span> / 7
+        <span :class="{'text-emerald-600 font-extrabold': photoCounter >= 7}">{{ photoCounter }}</span> / 7
       </div>
     </div>
 

@@ -74,16 +74,16 @@ const gaugeSubText = computed(() => {
 <template>
   <div class="flex flex-col min-h-[calc(100vh-5rem)] bg-slate-50 pb-6">
     <!-- TOP NAVIGATION BAR -->
-    <header class="bg-white border-b border-slate-100 px-4 py-3 flex items-center sticky top-0 z-40 shadow-sm">
+    <header class="bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-center sticky top-0 z-40 shadow-sm relative">
       <button 
         @click="router.push('/history')" 
-        class="p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700"
+        class="absolute left-4 p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
       </button>
-      <h1 class="text-sm font-bold text-slate-800 ml-4">Detail Pengamatan</h1>
+      <h1 class="text-base font-bold text-slate-800">Detail Pengamatan</h1>
     </header>
 
     <!-- Loading State -->
