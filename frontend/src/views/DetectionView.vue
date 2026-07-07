@@ -184,6 +184,10 @@ const handleFinalize = async () => {
   isFinalizing.value = true
   try {
     await axios.post(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}/finalize`)
+    
+    // Hapus sesi aktif dari storage agar jika user kembali ke Deteksi, akan dibuat sesi baru
+    localStorage.removeItem('activeSessionId')
+    
     // Arahkan ke history view setelah sukses finalize
     router.push(`/sessions/${currentSessionId.value}`)
   } catch (error) {
