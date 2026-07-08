@@ -69,6 +69,27 @@ const gaugeSubText = computed(() => {
   if (session.value.hrs >= 60) return 'Perlu Pemantauan'
   return 'Belum Optimal'
 })
+
+// Analitik Persentase Kumulatif
+const totalAll = computed(() => {
+  if (!session.value) return 0
+  return session.value.total_semi_ripe + session.value.total_nearly_ripe + session.value.total_ripe
+})
+
+const persenSemi = computed(() => {
+  if (!session.value || totalAll.value === 0) return 0
+  return Math.round((session.value.total_semi_ripe / totalAll.value) * 100)
+})
+
+const persenNearly = computed(() => {
+  if (!session.value || totalAll.value === 0) return 0
+  return Math.round((session.value.total_nearly_ripe / totalAll.value) * 100)
+})
+
+const persenRipe = computed(() => {
+  if (!session.value || totalAll.value === 0) return 0
+  return Math.round((session.value.total_ripe / totalAll.value) * 100)
+})
 </script>
 
 <template>
@@ -132,17 +153,20 @@ const gaugeSubText = computed(() => {
       <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
         <h3 class="text-[10px] font-semibold text-slate-400 mb-4 uppercase tracking-wider text-center">Akumulasi Total Objek</h3>
         <div class="grid grid-cols-3 divide-x divide-slate-100">
-          <div class="flex flex-col items-center py-2">
+          <div class="flex flex-col items-center py-2 text-center">
             <span class="text-slate-900 font-extrabold text-xl">{{ session.total_semi_ripe }}</span>
-            <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider mt-1">Semi-ripe</span>
+            <span class="text-[9px] text-slate-400 font-medium block mt-0.5">({{ persenSemi }}% dari total)</span>
+            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-1.5">Semi-ripe</span>
           </div>
-          <div class="flex flex-col items-center py-2">
+          <div class="flex flex-col items-center py-2 text-center">
             <span class="text-slate-900 font-extrabold text-xl">{{ session.total_nearly_ripe }}</span>
-            <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider mt-1">Nearly-ripe</span>
+            <span class="text-[9px] text-slate-400 font-medium block mt-0.5">({{ persenNearly }}% dari total)</span>
+            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-1.5">Nearly-ripe</span>
           </div>
-          <div class="flex flex-col items-center py-2">
+          <div class="flex flex-col items-center py-2 text-center">
             <span class="text-slate-900 font-extrabold text-xl">{{ session.total_ripe }}</span>
-            <span class="text-[10px] font-medium text-slate-500 uppercase tracking-wider mt-1">Ripe</span>
+            <span class="text-[9px] text-slate-400 font-medium block mt-0.5">({{ persenRipe }}% dari total)</span>
+            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-1.5">Ripe</span>
           </div>
         </div>
         <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center px-2">
@@ -176,6 +200,52 @@ const gaugeSubText = computed(() => {
             <span class="text-xs font-semibold uppercase tracking-widest">Estimasi Daya Simpan</span>
           </div>
           <span class="text-sm font-bold text-white">{{ session.estimated_shelf_life }} Hari</span>
+        </div>
+      </div>
+      
+      <!-- Section: Rincian Hasil per Sampel Titik -->
+      <div v-if="session.detections && session.detections.length > 0" class="mt-2">
+        <h3 class="text-sm font-bold text-slate-800 mb-3 px-1">Rincian Hasil per Sampel Titik</h3>
+        
+        <div class="flex flex-col gap-2">
+          <div 
+            v-for="(det, index) in session.detections" 
+            :key="det.id"
+            class="bg-white rounded-xl p-3 border border-slate-100 flex justify-between items-center shadow-sm"
+          >
+            <!-- Sisi Kiri: Info Sampel -->
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
+                <!-- Ikon Kamera/Target Mini -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                </svg>
+              </div>
+              <div>
+                <span class="text-[13px] font-bold text-slate-800 block">Sampel Titik #{{ index + 1 }}</span>
+                <span class="text-[10px] font-medium text-slate-400 mt-0.5 block">Akurasi AI: {{ det.average_confidence ? Math.round(det.average_confidence * 100) : 0 }}%</span>
+              </div>
+            </div>
+            
+            <!-- Sisi Kanan: Mini Rincian Buah -->
+            <div class="flex items-center gap-3">
+              <div class="flex flex-col items-center">
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mb-1"></div>
+                <span class="text-[11px] font-black text-slate-700">{{ det.semi_ripe_count }}</span>
+              </div>
+              <div class="w-px h-6 bg-slate-100"></div>
+              <div class="flex flex-col items-center">
+                <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mb-1"></div>
+                <span class="text-[11px] font-black text-slate-700">{{ det.nearly_ripe_count }}</span>
+              </div>
+              <div class="w-px h-6 bg-slate-100"></div>
+              <div class="flex flex-col items-center">
+                <div class="w-1.5 h-1.5 rounded-full bg-rose-500 mb-1"></div>
+                <span class="text-[11px] font-black text-slate-700">{{ det.ripe_count }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
