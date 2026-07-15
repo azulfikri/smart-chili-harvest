@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
@@ -223,6 +223,53 @@ const handleCancelSession = async () => {
     alert('Gagal membatalkan pengamatan. Pastikan backend aktif.')
   }
 }
+
+// Handler Navigasi: Peringatan jika user meninggalkan halaman saat pengamatan belum selesai
+onBeforeRouteLeave(async (to, from, next) => {
+  // Indikator bahwa pengamatan sudah benar-benar dimulai
+  const hasStartedObservation = photoCounter.value > 0 || currentPhotoData.value !== null || isUploading.value;
+
+  // Guard condition: Jika sudah mulai dan belum mencapai 7
+  if (hasStartedObservation && photoCounter.value < 7 && !isFinalizing.value) {
+    // Tampilkan popup konfirmasi
+    const wantToContinue = confirm(
+      "Anda sedang dalam proses pengamatan.\n\n" +
+      "Klik [OK] untuk MELANJUTKAN pengamatan di halaman ini.\n" +
+      "Klik [Cancel] untuk MEMBATALKAN pengamatan dan keluar."
+    )
+    
+    if (wantToContinue) {
+      // User memilih OK -> Tetap di halaman ini
+      next(false)
+    } else {
+      // User memilih Cancel -> Hapus progres dan izinkan pindah halaman
+      if (currentSessionId.value) {
+        try {
+          await axios.delete(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}`)
+          localStorage.removeItem('activeSessionId')
+        } catch (e) {
+          console.error("Gagal menghapus sesi otomatis:", e)
+        }
+      }
+      next()
+    }
+  } else if (!isFinalizing.value && photoCounter.value === 0) {
+    // Jika belum memulai pengamatan (hanya buka halaman lalu klik back)
+    // Hapus sesi kosong secara diam-diam agar DB tetap bersih
+    if (currentSessionId.value) {
+      try {
+        await axios.delete(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}`)
+        localStorage.removeItem('activeSessionId')
+      } catch (e) {
+        console.error("Abaikan error saat hapus sesi:", e)
+      }
+    }
+    next()
+  } else {
+    // Lanjutkan perpindahan halaman normal
+    next()
+  }
+})
 </script>
 
 <template>

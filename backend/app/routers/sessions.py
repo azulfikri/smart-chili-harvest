@@ -126,7 +126,7 @@ def upload_and_detect_photo(
     persen_nearly_ripe = (nearly_ripe / total_buah) * 100 if total_buah > 0 else 0
     persen_ripe = (ripe / total_buah) * 100 if total_buah > 0 else 0
     
-    # Pastikan skema JSON Response persis sama
+    # Pastikan skema JSON Response persis sama dengan tambahan processed_image
     return {
         "status": "success",
         "session_id": session_id,
@@ -137,6 +137,7 @@ def upload_and_detect_photo(
         "persen_nearly_ripe": persen_nearly_ripe,
         "persen_ripe": persen_ripe,
         "confidence": confidence,
+        "processed_image": f"/{processed_path}",
         "boxes": boxes_data
     }
 
