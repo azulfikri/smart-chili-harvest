@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import SplashView from '../views/SplashView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import DetectionView from '../views/DetectionView.vue'
 import HistoryView from '../views/HistoryView.vue'
@@ -8,7 +9,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/dashboard'
+      name: 'splash',
+      component: SplashView
     },
     {
       path: '/dashboard',

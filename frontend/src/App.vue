@@ -9,7 +9,7 @@ const route = useRoute()
   <div class="max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl shadow-slate-200 relative">
     
     <!-- Global Top Header (Glassmorphism - Senada Bottom Nav) -->
-    <header class="sticky top-0 h-14 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.03)] flex justify-center items-center px-4 z-40">
+    <header v-if="route.path !== '/'" class="sticky top-0 h-14 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.03)] flex justify-center items-center px-4 z-40">
       <div class="flex items-center gap-2">
         <!-- Logo SVG Daun -->
         <svg viewBox="0 0 32 32" class="w-7 h-7" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -25,7 +25,7 @@ const route = useRoute()
     <RouterView />
 
     <!-- Glassmorphism Bottom Navigation Bar -->
-    <nav class="sticky bottom-0 bg-white/80 backdrop-blur-md border-t border-slate-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 flex justify-around items-center h-20 pb-4 pt-3">
+    <nav v-if="route.path !== '/'" class="sticky bottom-0 bg-white/80 backdrop-blur-md border-t border-slate-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 flex justify-around items-center h-20 pb-4 pt-3">
       
       <!-- Dashboard Button -->
       <RouterLink 

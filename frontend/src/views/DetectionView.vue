@@ -490,7 +490,7 @@ onBeforeRouteLeave(async () => {
     </div>
 
     <!-- Custom Modal Konfirmasi Keluar -->
-    <div v-if="showCancelDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div v-if="showCancelDialog" class="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
       <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl scale-100 transition-transform flex flex-col items-center text-center animate-in fade-in zoom-in duration-200">
         <!-- Icon Alert -->
         <div class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-4 border-4 border-rose-100">
