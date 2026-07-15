@@ -54,7 +54,7 @@ const hrsScoreText = computed(() => {
   let label = 'Rendah'
   let colorClass = 'text-rose-600'
   if (hrs >= 80) { label = 'Optimal'; colorClass = 'text-emerald-700' }
-  else if (hrs >= 60) { label = 'Moderat'; colorClass = 'text-amber-600' }
+  else if (hrs >= 60) { label = 'Menengah'; colorClass = 'text-amber-600' }
   return { score: `${score}%`, label, colorClass }
 })
 
