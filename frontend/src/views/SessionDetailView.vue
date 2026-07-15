@@ -176,17 +176,17 @@ const activeDetection = computed(() => {
           <div class="flex flex-col items-center py-2 text-center">
             <span class="text-slate-900 font-extrabold text-xl">{{ session.total_semi_ripe }}</span>
             <span class="text-[9px] text-slate-400 font-medium block mt-0.5">({{ persenSemi }}% dari total)</span>
-            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-1.5">Semi-ripe</span>
+            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-1.5">Setengah Matang</span>
           </div>
           <div class="flex flex-col items-center py-2 text-center">
             <span class="text-slate-900 font-extrabold text-xl">{{ session.total_nearly_ripe }}</span>
             <span class="text-[9px] text-slate-400 font-medium block mt-0.5">({{ persenNearly }}% dari total)</span>
-            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-1.5">Nearly-ripe</span>
+            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-1.5">Mendekati Matang</span>
           </div>
           <div class="flex flex-col items-center py-2 text-center">
             <span class="text-slate-900 font-extrabold text-xl">{{ session.total_ripe }}</span>
             <span class="text-[9px] text-slate-400 font-medium block mt-0.5">({{ persenRipe }}% dari total)</span>
-            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-1.5">Ripe</span>
+            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider mt-1.5">Matang</span>
           </div>
         </div>
         <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center px-2">
@@ -296,20 +296,20 @@ const activeDetection = computed(() => {
           <!-- Grid 3 Kolom Rincian Buah (Mini Horizontal Grid) -->
           <div class="flex bg-slate-50 rounded-xl border border-slate-100 p-3 divide-x divide-slate-200">
             <div class="flex-1 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Semi</span>
-              <span class="text-base font-black text-slate-800 flex items-center gap-1.5">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 text-center">Setengah</span>
+              <span class="text-base font-black text-slate-800 flex items-center gap-1.5 mt-auto">
                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>{{ activeDetection.semi_ripe_count }}
               </span>
             </div>
             <div class="flex-1 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Nearly</span>
-              <span class="text-base font-black text-slate-800 flex items-center gap-1.5">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 text-center">Mendekati</span>
+              <span class="text-base font-black text-slate-800 flex items-center gap-1.5 mt-auto">
                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>{{ activeDetection.nearly_ripe_count }}
               </span>
             </div>
             <div class="flex-1 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Ripe</span>
-              <span class="text-base font-black text-slate-800 flex items-center gap-1.5">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 text-center">Matang</span>
+              <span class="text-base font-black text-slate-800 flex items-center gap-1.5 mt-auto">
                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>{{ activeDetection.ripe_count }}
               </span>
             </div>

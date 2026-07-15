@@ -66,18 +66,27 @@ const goToDetail = (id: number) => {
 }
 
 // Logika Hapus (Delete)
-const deleteSession = async (id: number, event: Event) => {
+const showDeleteDialog = ref(false)
+const sessionToDelete = ref<number | null>(null)
+
+const confirmDeleteSession = (id: number, event: Event) => {
   event.stopPropagation()
-  const isConfirmed = confirm("Apakah Anda yakin ingin menghapus riwayat sesi ini secara permanen?")
-  if (!isConfirmed) return
-  
-  try {
-    await axios.delete(`http://127.0.0.1:8000/api/sessions/${id}`)
-    historyList.value = historyList.value.filter(session => session.id !== id)
-  } catch (error) {
-    console.error('Error deleting session:', error)
-    alert('Gagal menghapus riwayat pengamatan.')
+  sessionToDelete.value = id
+  showDeleteDialog.value = true
+}
+
+const handleDeleteConfirm = async (confirmAction: boolean) => {
+  showDeleteDialog.value = false
+  if (confirmAction && sessionToDelete.value !== null) {
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/sessions/${sessionToDelete.value}`)
+      historyList.value = historyList.value.filter(session => session.id !== sessionToDelete.value)
+    } catch (error) {
+      console.error('Error deleting session:', error)
+      alert('Gagal menghapus riwayat pengamatan.')
+    }
   }
+  sessionToDelete.value = null
 }
 </script>
 
@@ -188,7 +197,7 @@ const deleteSession = async (id: number, event: Event) => {
             
             <!-- Tombol Hapus -->
             <button 
-              @click="(e) => deleteSession(session.id, e)"
+              @click="(e) => confirmDeleteSession(session.id, e)"
               class="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-lg transition-all"
               title="Hapus Sesi"
             >
@@ -197,6 +206,27 @@ const deleteSession = async (id: number, event: Event) => {
               </svg>
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+    <!-- Custom Modal Konfirmasi Hapus -->
+    <div v-if="showDeleteDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl scale-100 transition-transform flex flex-col items-center text-center animate-in fade-in zoom-in duration-200">
+        <!-- Icon Alert -->
+        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4 border-4 border-red-100">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-7 h-7">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.145 0c-.167.04-.334.08-.5.12m-14.145 0c.167.04.334.08.5.12m14.145 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 mb-2">Hapus Riwayat Sesi?</h3>
+        <p class="text-sm text-slate-500 mb-6 font-medium leading-relaxed">Sesi ini akan dihapus secara <b>permanen</b> dan tidak dapat dikembalikan lagi.</p>
+        <div class="w-full flex flex-col gap-2.5">
+          <button @click="handleDeleteConfirm(false)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 transition-colors">
+            Batal
+          </button>
+          <button @click="handleDeleteConfirm(true)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-red-500 text-white hover:bg-red-600 active:bg-red-700 transition-colors shadow-lg shadow-red-500/30">
+            Ya, Hapus
+          </button>
         </div>
       </div>
     </div>

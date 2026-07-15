@@ -224,35 +224,46 @@ const handleCancelSession = async () => {
   }
 }
 
+// Modal State untuk Konfirmasi Batal
+const showCancelDialog = ref(false)
+const resolveModal = ref<((value: boolean) => void) | null>(null)
+
+const confirmCancelObservation = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    showCancelDialog.value = true
+    resolveModal.value = resolve
+  })
+}
+
+const handleConfirmLeave = async (leave: boolean) => {
+  showCancelDialog.value = false
+  if (leave) {
+    // User memilih batal pengamatan dan keluar
+    if (currentSessionId.value) {
+      try {
+        await axios.delete(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}`)
+        localStorage.removeItem('activeSessionId')
+      } catch (e) {
+        console.error("Abaikan error saat hapus sesi:", e)
+      }
+    }
+    if (resolveModal.value) resolveModal.value(true) // Lanjutkan rute
+  } else {
+    // Tetap di halaman
+    if (resolveModal.value) resolveModal.value(false) // Batalkan rute
+  }
+}
+
 // Handler Navigasi: Peringatan jika user meninggalkan halaman saat pengamatan belum selesai
-onBeforeRouteLeave(async (to, from, next) => {
+onBeforeRouteLeave(async () => {
   // Indikator bahwa pengamatan sudah benar-benar dimulai
   const hasStartedObservation = photoCounter.value > 0 || currentPhotoData.value !== null || isUploading.value;
 
   // Guard condition: Jika sudah mulai dan belum mencapai 7
   if (hasStartedObservation && photoCounter.value < 7 && !isFinalizing.value) {
-    // Tampilkan popup konfirmasi
-    const wantToContinue = confirm(
-      "Anda sedang dalam proses pengamatan.\n\n" +
-      "Klik [OK] untuk MELANJUTKAN pengamatan di halaman ini.\n" +
-      "Klik [Cancel] untuk MEMBATALKAN pengamatan dan keluar."
-    )
-    
-    if (wantToContinue) {
-      // User memilih OK -> Tetap di halaman ini
-      next(false)
-    } else {
-      // User memilih Cancel -> Hapus progres dan izinkan pindah halaman
-      if (currentSessionId.value) {
-        try {
-          await axios.delete(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}`)
-          localStorage.removeItem('activeSessionId')
-        } catch (e) {
-          console.error("Gagal menghapus sesi otomatis:", e)
-        }
-      }
-      next()
-    }
+    // Tampilkan custom popup konfirmasi via Promise
+    const canLeave = await confirmCancelObservation()
+    return canLeave // Jika true, rute dilanjutkan. Jika false, dibatalkan.
   } else if (!isFinalizing.value && photoCounter.value === 0) {
     // Jika belum memulai pengamatan (hanya buka halaman lalu klik back)
     // Hapus sesi kosong secara diam-diam agar DB tetap bersih
@@ -264,10 +275,10 @@ onBeforeRouteLeave(async (to, from, next) => {
         console.error("Abaikan error saat hapus sesi:", e)
       }
     }
-    next()
+    return true
   } else {
     // Lanjutkan perpindahan halaman normal
-    next()
+    return true
   }
 })
 </script>
@@ -338,21 +349,21 @@ onBeforeRouteLeave(async (to, from, next) => {
         <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-center pt-3 pb-2">Hasil Deteksi AI</p>
         <div class="grid grid-cols-3 divide-x divide-slate-100">
           <!-- Semi-ripe -->
-          <div class="flex flex-col items-center py-3">
+          <div class="flex flex-col items-center py-3 text-center">
             <span class="text-lg font-bold text-slate-800">{{ currentPhotoData.semi_ripe }}</span>
-            <span class="text-[10px] font-medium text-amber-500 uppercase tracking-wider mt-0.5 mb-1">Semi-ripe</span>
+            <span class="text-[10px] font-medium text-amber-500 uppercase tracking-wider mt-0.5 mb-1">Setengah Matang</span>
             <span class="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">{{ currentPhotoData.persen_semi_ripe?.toFixed(1) || 0 }}%</span>
           </div>
           <!-- Nearly-ripe -->
-          <div class="flex flex-col items-center py-3">
+          <div class="flex flex-col items-center py-3 text-center">
             <span class="text-lg font-bold text-slate-800">{{ currentPhotoData.nearly_ripe }}</span>
-            <span class="text-[10px] font-medium text-orange-500 uppercase tracking-wider mt-0.5 mb-1">Nearly-ripe</span>
+            <span class="text-[10px] font-medium text-orange-500 uppercase tracking-wider mt-0.5 mb-1">Mendekati Matang</span>
             <span class="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">{{ currentPhotoData.persen_nearly_ripe?.toFixed(1) || 0 }}%</span>
           </div>
           <!-- Ripe -->
-          <div class="flex flex-col items-center py-3">
+          <div class="flex flex-col items-center py-3 text-center">
             <span class="text-lg font-bold text-slate-800">{{ currentPhotoData.ripe }}</span>
-            <span class="text-[10px] font-medium text-rose-600 uppercase tracking-wider mt-0.5 mb-1">Ripe</span>
+            <span class="text-[10px] font-medium text-rose-600 uppercase tracking-wider mt-0.5 mb-1">Matang</span>
             <span class="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">{{ currentPhotoData.persen_ripe?.toFixed(1) || 0 }}%</span>
           </div>
         </div>
@@ -476,6 +487,28 @@ onBeforeRouteLeave(async (to, from, next) => {
         </svg>
         Batal Pengamatan
       </button>
+    </div>
+
+    <!-- Custom Modal Konfirmasi Keluar -->
+    <div v-if="showCancelDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl scale-100 transition-transform flex flex-col items-center text-center animate-in fade-in zoom-in duration-200">
+        <!-- Icon Alert -->
+        <div class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-4 border-4 border-rose-100">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-7 h-7">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 mb-2">Batalkan Pengamatan?</h3>
+        <p class="text-sm text-slate-500 mb-6 font-medium leading-relaxed">Anda masih memiliki progres yang belum selesai. Meninggalkan halaman ini akan <b>menghapus progres</b> Anda.</p>
+        <div class="w-full flex flex-col gap-2.5">
+          <button @click="handleConfirmLeave(false)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 transition-colors">
+            Lanjutkan Pengamatan
+          </button>
+          <button @click="handleConfirmLeave(true)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-rose-500 text-white hover:bg-rose-600 active:bg-rose-700 transition-colors shadow-lg shadow-rose-500/30">
+            Ya, Tinggalkan
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
