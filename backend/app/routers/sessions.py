@@ -3,10 +3,14 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime
 import random
+from ultralytics import YOLO
 
 from app.database.database import get_db
 from app.models.observation_sessions import ObservationSession
 from app.models.photo_detections import Detection
+
+# Inisialisasi model YOLO secara global
+model = YOLO("weights/best.pt")
 
 router = APIRouter(prefix="/api/sessions", tags=["Sessions"])
 
@@ -37,15 +41,9 @@ def upload_and_detect_photo(
     file: UploadFile = File(...), 
     db: Session = Depends(get_db)
 ):
-    # Mock data generasi
-    semi_ripe = random.randint(1, 5)
-    nearly_ripe = random.randint(1, 5)
-    ripe = random.randint(1, 5)
-    confidence = round(random.uniform(0.75, 0.95), 2)
-    
     os.makedirs("uploads", exist_ok=True)
     
-    # Path mock - gunakan UUID agar nama file unik (mencegah overwriting/caching)
+    # Gunakan UUID agar nama file unik (mencegah overwriting/caching)
     unique_id = str(uuid.uuid4())[:8]
     ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
     safe_filename = f"{unique_id}.{ext}"
@@ -53,14 +51,62 @@ def upload_and_detect_photo(
     original_path = f"uploads/{safe_filename}"
     processed_path = f"uploads/processed_{safe_filename}"
     
-    # Simpan file yang diupload ke disk
+    # Simpan file yang diupload ke disk (temporary)
     with open(original_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         
-    # Copy file original sebagai mock untuk "processed_image"
-    shutil.copy(original_path, processed_path)
+    # --- REAL INFERENCE LOGIC YOLOv8 ---
+    # Lakukan prediksi dengan threshold confidence 0.25
+    results = model.predict(source=original_path, conf=0.25)
+    result = results[0]
     
-    # Simpan ke tabel detections
+    # Simpan hasil gambar dengan bounding box
+    result.save(filename=processed_path)
+    
+    # Variabel penghitung
+    semi_ripe = 0
+    nearly_ripe = 0
+    ripe = 0
+    
+    total_confidence = 0.0
+    boxes_data = []
+    
+    # Loop hasil deteksi untuk kalkulasi box, count, dan confidence
+    for box in result.boxes:
+        cls_id = int(box.cls[0])
+        conf = float(box.conf[0])
+        
+        # Mapping sesuai class ID dari YOLO training
+        # {0: 'nearly-ripe', 1: 'ripe', 2: 'semi-ripe'}
+        if cls_id == 0:
+            nearly_ripe += 1
+            label = "nearly_ripe"
+        elif cls_id == 1:
+            ripe += 1
+            label = "ripe"
+        elif cls_id == 2:
+            semi_ripe += 1
+            label = "semi_ripe"
+        else:
+            continue
+            
+        total_confidence += conf
+        
+        # Extract koordinat box untuk disajikan di response JSON (opsional tapi sesuai skema awal)
+        xyxy = box.xyxy[0].tolist()
+        boxes_data.append({
+            "box": xyxy,
+            "label": label,
+            "confidence": conf
+        })
+        
+    total_buah = semi_ripe + nearly_ripe + ripe
+    
+    # Hitung nilai rata-rata confidence score dari keseluruhan objek di gambar ini
+    average_confidence = total_confidence / total_buah if total_buah > 0 else 0.0
+    confidence = round(average_confidence, 2)
+    
+    # Simpan ke tabel detections di database (SQLite)
     new_detection = Detection(
         session_id=session_id,
         original_image=original_path,
@@ -75,11 +121,12 @@ def upload_and_detect_photo(
     db.commit()
     db.refresh(new_detection)
     
-    total_buah = semi_ripe + nearly_ripe + ripe
+    # Kalkulasi Persentase
     persen_semi_ripe = (semi_ripe / total_buah) * 100 if total_buah > 0 else 0
     persen_nearly_ripe = (nearly_ripe / total_buah) * 100 if total_buah > 0 else 0
     persen_ripe = (ripe / total_buah) * 100 if total_buah > 0 else 0
     
+    # Pastikan skema JSON Response persis sama
     return {
         "status": "success",
         "session_id": session_id,
@@ -90,9 +137,7 @@ def upload_and_detect_photo(
         "persen_nearly_ripe": persen_nearly_ripe,
         "persen_ripe": persen_ripe,
         "confidence": confidence,
-        "boxes": [
-            {"box": [50, 50, 150, 200], "label": "ripe"}
-        ]
+        "boxes": boxes_data
     }
 
 

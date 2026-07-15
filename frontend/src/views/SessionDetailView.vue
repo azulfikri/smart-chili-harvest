@@ -90,6 +90,26 @@ const persenRipe = computed(() => {
   if (!session.value || totalAll.value === 0) return 0
   return Math.round((session.value.total_ripe / totalAll.value) * 100)
 })
+
+// State Management untuk Carousel Deteksi
+const currentSampleIndex = ref(0)
+
+const nextSample = () => {
+  if (session.value && session.value.detections && currentSampleIndex.value < session.value.detections.length - 1) {
+    currentSampleIndex.value++
+  }
+}
+
+const prevSample = () => {
+  if (currentSampleIndex.value > 0) {
+    currentSampleIndex.value--
+  }
+}
+
+const activeDetection = computed(() => {
+  if (!session.value || !session.value.detections || session.value.detections.length === 0) return null
+  return session.value.detections[currentSampleIndex.value]
+})
 </script>
 
 <template>
@@ -203,47 +223,95 @@ const persenRipe = computed(() => {
         </div>
       </div>
       
-      <!-- Section: Rincian Hasil per Sampel Titik -->
-      <div v-if="session.detections && session.detections.length > 0" class="mt-2">
-        <h3 class="text-sm font-bold text-slate-800 mb-3 px-1">Rincian Hasil per Sampel Titik</h3>
+      <!-- Section: Dynamic AI Analytics Carousel -->
+      <div v-if="session.detections && session.detections.length > 0" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+        <h3 class="text-sm font-bold text-slate-800 mb-3">Detail Sampel per Titik Pohon</h3>
         
-        <div class="flex flex-col gap-2">
-          <div 
-            v-for="(det, index) in session.detections" 
-            :key="det.id"
-            class="bg-white rounded-xl p-3 border border-slate-100 flex justify-between items-center shadow-sm"
+        <!-- Area Visual Banner Gambar -->
+        <div class="relative w-full aspect-4/3 rounded-xl overflow-hidden bg-slate-900 shadow-inner group">
+          <img 
+            v-if="activeDetection?.processed_image"
+            :src="`http://127.0.0.1:8000/${activeDetection.processed_image}`" 
+            class="w-full h-full object-cover" 
+            alt="Sampel Deteksi"
+            @error="(e) => (e.target as HTMLImageElement).src = ''"
+          />
+          
+          <!-- Fallback jika gambar gagal dimuat -->
+          <div v-if="!activeDetection?.processed_image" class="absolute inset-0 flex items-center justify-center text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 opacity-50">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            </svg>
+          </div>
+
+          <!-- Tombol Panah Kiri -->
+          <button 
+            v-if="currentSampleIndex > 0"
+            @click="prevSample"
+            class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm shadow-md rounded-full p-2 hover:bg-white text-slate-700 transition-all z-10 active:scale-95"
           >
-            <!-- Sisi Kiri: Info Sampel -->
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
-                <!-- Ikon Kamera/Target Mini -->
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                </svg>
-              </div>
-              <div>
-                <span class="text-[13px] font-bold text-slate-800 block">Sampel Titik #{{ index + 1 }}</span>
-                <span class="text-[10px] font-medium text-slate-400 mt-0.5 block">Akurasi AI: {{ det.average_confidence ? Math.round(det.average_confidence * 100) : 0 }}%</span>
-              </div>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+
+          <!-- Tombol Panah Kanan -->
+          <button 
+            v-if="currentSampleIndex < session.detections.length - 1"
+            @click="nextSample"
+            class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm shadow-md rounded-full p-2 hover:bg-white text-slate-700 transition-all z-10 active:scale-95"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+          
+          <!-- Indikator Posisi (Dots) Mengambang di Bawah Gambar -->
+          <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/30 px-3 py-1.5 rounded-full backdrop-blur-sm">
+            <div 
+              v-for="(_, idx) in session.detections" 
+              :key="idx"
+              class="w-1.5 h-1.5 rounded-full transition-all"
+              :class="idx === currentSampleIndex ? 'bg-white scale-110' : 'bg-white/40'"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Panel Informasi Dinamis -->
+        <div class="mt-4" v-if="activeDetection">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <h4 class="text-sm font-bold text-slate-900">Sampel Titik #{{ currentSampleIndex + 1 }}</h4>
+              <p class="text-xs font-medium text-slate-400 mt-0.5">Akurasi AI: {{ activeDetection.average_confidence ? Math.round(activeDetection.average_confidence * 100) : 0 }}%</p>
             </div>
             
-            <!-- Sisi Kanan: Mini Rincian Buah -->
-            <div class="flex items-center gap-3">
-              <div class="flex flex-col items-center">
-                <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mb-1"></div>
-                <span class="text-[11px] font-black text-slate-700">{{ det.semi_ripe_count }}</span>
-              </div>
-              <div class="w-px h-6 bg-slate-100"></div>
-              <div class="flex flex-col items-center">
-                <div class="w-1.5 h-1.5 rounded-full bg-amber-400 mb-1"></div>
-                <span class="text-[11px] font-black text-slate-700">{{ det.nearly_ripe_count }}</span>
-              </div>
-              <div class="w-px h-6 bg-slate-100"></div>
-              <div class="flex flex-col items-center">
-                <div class="w-1.5 h-1.5 rounded-full bg-rose-500 mb-1"></div>
-                <span class="text-[11px] font-black text-slate-700">{{ det.ripe_count }}</span>
-              </div>
+            <div class="bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 flex items-center gap-1.5">
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-emerald-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+               </svg>
+               <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wide">Teranalisis</span>
+            </div>
+          </div>
+          
+          <!-- Grid 3 Kolom Rincian Buah (Mini Horizontal Grid) -->
+          <div class="flex bg-slate-50 rounded-xl border border-slate-100 p-3 divide-x divide-slate-200">
+            <div class="flex-1 flex flex-col items-center">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Semi</span>
+              <span class="text-base font-black text-slate-800 flex items-center gap-1.5">
+                 <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>{{ activeDetection.semi_ripe_count }}
+              </span>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Nearly</span>
+              <span class="text-base font-black text-slate-800 flex items-center gap-1.5">
+                 <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>{{ activeDetection.nearly_ripe_count }}
+              </span>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Ripe</span>
+              <span class="text-base font-black text-slate-800 flex items-center gap-1.5">
+                 <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>{{ activeDetection.ripe_count }}
+              </span>
             </div>
           </div>
         </div>
@@ -256,7 +324,7 @@ const persenRipe = computed(() => {
     </div>
     
     <!-- Button Action Footer -->
-    <div class="px-4 mt-8" v-if="session">
+    <div class="px-4 mt-4" v-if="session">
       <button 
         @click="router.push('/dashboard')"
         class="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-bold py-3.5 px-6 rounded-xl border-2 border-slate-200 shadow-sm transition-all flex justify-center items-center gap-2"
