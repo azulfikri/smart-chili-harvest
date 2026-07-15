@@ -118,7 +118,7 @@ const activeDetection = computed(() => {
     <header class="bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-center sticky top-0 z-40 shadow-sm">
       <button 
         @click="router.push('/history')" 
-        class="absolute left-4 p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700"
+        class="absolute left-4 p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700 cursor-pointer"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -248,7 +248,7 @@ const activeDetection = computed(() => {
           <button 
             v-if="currentSampleIndex > 0"
             @click="prevSample"
-            class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm shadow-md rounded-full p-2 hover:bg-white text-slate-700 transition-all z-10 active:scale-95"
+            class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm shadow-md rounded-full p-2 hover:bg-white text-slate-700 transition-all z-10 active:scale-95 cursor-pointer"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -259,7 +259,7 @@ const activeDetection = computed(() => {
           <button 
             v-if="currentSampleIndex < session.detections.length - 1"
             @click="nextSample"
-            class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm shadow-md rounded-full p-2 hover:bg-white text-slate-700 transition-all z-10 active:scale-95"
+            class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm shadow-md rounded-full p-2 hover:bg-white text-slate-700 transition-all z-10 active:scale-95 cursor-pointer"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -327,7 +327,7 @@ const activeDetection = computed(() => {
     <div class="px-4 mt-4" v-if="session">
       <button 
         @click="router.push('/dashboard')"
-        class="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-bold py-3.5 px-6 rounded-xl border-2 border-slate-200 shadow-sm transition-all flex justify-center items-center gap-2"
+        class="w-full bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-bold py-3.5 px-6 rounded-xl border-2 border-slate-200 shadow-sm transition-all flex justify-center items-center gap-2 cursor-pointer"
       >
         Kembali ke Dashboard
       </button>

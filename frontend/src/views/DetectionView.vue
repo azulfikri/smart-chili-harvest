@@ -299,7 +299,7 @@ onBeforeRouteLeave(async () => {
     <div class="flex items-center justify-center px-4 py-3 bg-white border-b border-emerald-100/50 sticky top-0 z-40">
       <button 
         @click="router.push('/dashboard')" 
-        class="absolute left-4 p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700"
+        class="absolute left-4 p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700 cursor-pointer"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -463,7 +463,7 @@ onBeforeRouteLeave(async () => {
       <button 
         @click="handleFinalize"
         :disabled="photoCounter < 7 || isFinalizing"
-        class="w-full py-4 px-6 rounded-xl font-semibold text-sm transition-all duration-200 flex justify-center items-center gap-2"
+        class="w-full py-4 px-6 rounded-xl font-semibold text-sm transition-all duration-200 flex justify-center items-center gap-2 cursor-pointer"
         :class="{
           'bg-slate-200 text-slate-400 cursor-not-allowed': photoCounter < 7,
           'bg-[#065f46] text-white shadow-lg shadow-emerald-700/20 hover:bg-[#064e3b] active:scale-[0.98] cursor-pointer': photoCounter >= 7
@@ -501,10 +501,10 @@ onBeforeRouteLeave(async () => {
         <h3 class="text-lg font-bold text-slate-800 mb-2">Batalkan Pengamatan?</h3>
         <p class="text-sm text-slate-500 mb-6 font-medium leading-relaxed">Anda masih memiliki progres yang belum selesai. Meninggalkan halaman ini akan <b>menghapus progres</b> Anda.</p>
         <div class="w-full flex flex-col gap-2.5">
-          <button @click="handleConfirmLeave(false)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 transition-colors">
+          <button @click="handleConfirmLeave(false)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer">
             Lanjutkan Pengamatan
           </button>
-          <button @click="handleConfirmLeave(true)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-rose-500 text-white hover:bg-rose-600 active:bg-rose-700 transition-colors shadow-lg shadow-rose-500/30">
+          <button @click="handleConfirmLeave(true)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-rose-500 text-white hover:bg-rose-600 active:bg-rose-700 transition-colors shadow-lg shadow-rose-500/30 cursor-pointer">
             Ya, Tinggalkan
           </button>
         </div>

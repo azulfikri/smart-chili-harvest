@@ -30,7 +30,7 @@ const route = useRoute()
       <!-- Dashboard Button -->
       <RouterLink 
         to="/dashboard" 
-        class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 ease-in-out active:scale-95"
+        class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 ease-in-out active:scale-95 cursor-pointer"
         :class="route.path === '/dashboard' ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-500'"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
@@ -42,7 +42,7 @@ const route = useRoute()
       <!-- Deteksi Button -->
       <RouterLink 
         to="/detection" 
-        class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 ease-in-out active:scale-95"
+        class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 ease-in-out active:scale-95 cursor-pointer"
         :class="route.path === '/detection' ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-500'"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
@@ -55,7 +55,7 @@ const route = useRoute()
       <!-- Riwayat Button -->
       <RouterLink 
         to="/history" 
-        class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 ease-in-out active:scale-95"
+        class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 ease-in-out active:scale-95 cursor-pointer"
         :class="route.path.includes('/history') || route.path.includes('/sessions') ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-500'"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">

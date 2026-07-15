@@ -198,7 +198,7 @@ const handleDeleteConfirm = async (confirmAction: boolean) => {
             <!-- Tombol Hapus -->
             <button 
               @click="(e) => confirmDeleteSession(session.id, e)"
-              class="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-lg transition-all"
+              class="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-lg transition-all cursor-pointer"
               title="Hapus Sesi"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -221,10 +221,10 @@ const handleDeleteConfirm = async (confirmAction: boolean) => {
         <h3 class="text-lg font-bold text-slate-800 mb-2">Hapus Riwayat Sesi?</h3>
         <p class="text-sm text-slate-500 mb-6 font-medium leading-relaxed">Sesi ini akan dihapus secara <b>permanen</b> dan tidak dapat dikembalikan lagi.</p>
         <div class="w-full flex flex-col gap-2.5">
-          <button @click="handleDeleteConfirm(false)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 transition-colors">
+          <button @click="handleDeleteConfirm(false)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 transition-colors cursor-pointer">
             Batal
           </button>
-          <button @click="handleDeleteConfirm(true)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-red-500 text-white hover:bg-red-600 active:bg-red-700 transition-colors shadow-lg shadow-red-500/30">
+          <button @click="handleDeleteConfirm(true)" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-red-500 text-white hover:bg-red-600 active:bg-red-700 transition-colors shadow-lg shadow-red-500/30 cursor-pointer">
             Ya, Hapus
           </button>
         </div>
