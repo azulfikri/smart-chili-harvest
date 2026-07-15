@@ -38,9 +38,17 @@ const formatDate = () => {
 // Format tanggal sesi untuk card (misal: "2 Juli")
 const formattedSessionDate = computed(() => {
   if (!latestSession.value?.created_at) return '-'
-  const date = new Date(latestSession.value.created_at)
-  const day = date.getDate()
-  const month = date.toLocaleDateString('id-ID', { month: 'long' })
+  let dateStr = latestSession.value.created_at
+  if (!dateStr.includes('T')) {
+    dateStr = dateStr.replace(' ', 'T') + 'Z'
+  } else if (!dateStr.endsWith('Z')) {
+    dateStr += 'Z'
+  }
+  const date = new Date(dateStr)
+  
+  // Gunakan timezone Jakarta agar hari tidak mundur/maju karena beda zona
+  const day = date.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric' })
+  const month = date.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', month: 'long' })
   return `${day} ${month}`
 })
 

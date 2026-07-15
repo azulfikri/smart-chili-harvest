@@ -37,8 +37,15 @@ const sessionsThisMonth = computed(() => {
 
 // Format Tanggal: 04 Juli 2026
 const formatDate = (dateString: string) => {
-  const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'long', year: 'numeric' }
-  return new Date(dateString).toLocaleDateString('id-ID', options)
+  let dateStr = dateString
+  if (!dateStr.includes('T')) {
+    dateStr = dateStr.replace(' ', 'T') + 'Z'
+  } else if (!dateStr.endsWith('Z')) {
+    dateStr += 'Z'
+  }
+  
+  const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'long', year: 'numeric' }
+  return new Date(dateStr).toLocaleDateString('id-ID', options)
 }
 
 // Fetch Data dari API

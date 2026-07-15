@@ -110,36 +110,75 @@ const activeDetection = computed(() => {
   if (!session.value || !session.value.detections || session.value.detections.length === 0) return null
   return session.value.detections[currentSampleIndex.value]
 })
+
+
+const formattedBadgeDate = computed(() => {
+  if (!session.value?.completed_at) return ''
+  
+  // SQLite menyimpan waktu dalam UTC format YYYY-MM-DD HH:MM:SS tanpa 'Z'
+  // Kita perlu mengubahnya ke format ISO UTC standar agar dibaca benar oleh JS
+  let dateStr = session.value.completed_at
+  if (!dateStr.includes('T')) {
+    dateStr = dateStr.replace(' ', 'T') + 'Z'
+  } else if (!dateStr.endsWith('Z')) {
+    dateStr += 'Z'
+  }
+  
+  const date = new Date(dateStr)
+  
+  const options: Intl.DateTimeFormatOptions = { 
+    timeZone: 'Asia/Jakarta', 
+    day: '2-digit', 
+    month: 'short', 
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }
+  
+  let formatted = date.toLocaleDateString('id-ID', options)
+  formatted = formatted.replace(/\./g, ':')
+  return `${formatted} WIB`
+})
 </script>
 
 <template>
   <div class="flex flex-col min-h-[calc(100vh-5rem)] bg-slate-50 pb-6">
-    <!-- TOP NAVIGATION BAR -->
-    <header class="bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-center sticky top-0 z-40 shadow-sm">
+    <!-- TOP NAVIGATION ROW (iOS Style) -->
+    <div class="flex items-center justify-between px-4 py-3 bg-slate-50/50">
       <button 
         @click="router.push('/history')" 
-        class="absolute left-4 p-2 -ml-2 rounded-full hover:bg-slate-100 active:bg-slate-200 transition-colors text-slate-700 cursor-pointer"
+        class="w-10 h-10 bg-white border border-slate-200/60 rounded-xl flex items-center justify-center text-slate-700 shadow-sm active:scale-95 transition-all cursor-pointer"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
       </button>
-      <h1 class="text-base font-bold text-slate-800">Detail Pengamatan</h1>
-    </header>
+
+      <!-- Micro-badge Date -->
+      <div v-if="session" class="text-[10px] bg-slate-200/60 text-slate-600 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
+        {{ formattedBadgeDate }}
+      </div>
+    </div>
+
+    <!-- AREA LARGE TITLE -->
+    <div v-if="session && !isLoading" class="px-4 pt-2 pb-5">
+      <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Laporan Hasil</h1>
+      <p class="text-xs text-slate-400 font-semibold mt-1 flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+        </svg>
+        Sesi: {{ session.session_name }}
+      </p>
+    </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="grow flex justify-center items-center">
+    <div v-if="isLoading" class="grow flex justify-center items-center py-10">
       <div class="animate-spin rounded-full h-10 w-10 border-2 border-emerald-200 border-t-emerald-600"></div>
     </div>
     
     <!-- Detail Content -->
-    <div v-else-if="session" class="grow flex flex-col gap-6 px-4 pt-6">
-      
-      <!-- Header Info -->
-      <div class="text-center">
-        <h2 class="text-lg font-bold text-slate-800 tracking-tight">{{ session.session_name }}</h2>
-        <p class="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-widest">{{ new Date(session.completed_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) }}</p>
-      </div>
+    <div v-else-if="session" class="grow flex flex-col gap-6 px-4">
       
       <!-- Premium Score Gauge Ring (Visualisasi Utama) -->
       <div class="flex justify-center my-2">
