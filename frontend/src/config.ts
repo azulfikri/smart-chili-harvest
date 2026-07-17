@@ -10,6 +10,7 @@
 
 const envUrl = import.meta.env.VITE_API_BASE_URL
 
-// Jika env kosong/undefined → gunakan '' (relative path, untuk Vercel proxy)
-// Jika env diisi → gunakan value tersebut (untuk dev lokal)
-export const API_BASE_URL = envUrl !== undefined && envUrl !== '' ? envUrl : ''
+// Jika aplikasi di-build untuk production (Vercel), paksa gunakan relative path ('') 
+// agar request dilewatkan melalui Vercel rewrites proxy (menghindari error HTTPS ke HTTP).
+// Jika di development lokal, gunakan nilai dari .env.development.
+export const API_BASE_URL = import.meta.env.PROD ? '' : (envUrl || 'http://210.79.190.219:8000')
