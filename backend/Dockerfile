@@ -15,5 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
-# Run uvicorn server dynamically using PORT environment variable from Railway
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Make the entrypoint script executable
+RUN chmod +x entrypoint.sh
+
+# Use entrypoint to auto-init DB then start uvicorn
+ENTRYPOINT ["./entrypoint.sh"]
