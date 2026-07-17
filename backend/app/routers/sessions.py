@@ -206,7 +206,7 @@ def get_sessions(db: Session = Depends(get_db)):
     for session in sessions:
         thumbnail = None
         if session.detections and len(session.detections) > 0:
-            thumbnail = f"http://127.0.0.1:8000/{session.detections[0].processed_image}"
+            thumbnail = f"/{session.detections[0].processed_image}"
             
         session_dict = {
             "id": session.id,
