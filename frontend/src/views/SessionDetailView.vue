@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import { API_BASE_URL } from '@/config'
 
 const route = useRoute()
 const router = useRouter()
@@ -38,7 +39,7 @@ const isLoading = ref(true)
 
 onMounted(async () => {
   try {
-    const response = await axios.get(`http://127.0.0.1:8000/api/sessions/${sessionId}`)
+    const response = await axios.get(`${API_BASE_URL}/api/sessions/${sessionId}`)
     session.value = response.data
   } catch (error) {
     console.error('Error fetching session details:', error)
@@ -270,7 +271,7 @@ const formattedBadgeDate = computed(() => {
         <div class="relative w-full aspect-4/3 rounded-xl overflow-hidden bg-slate-900 shadow-inner group">
           <img 
             v-if="activeDetection?.processed_image"
-            :src="`http://127.0.0.1:8000/${activeDetection.processed_image}`" 
+            :src="`${API_BASE_URL}/${activeDetection.processed_image}`" 
             class="w-full h-full object-cover" 
             alt="Sampel Deteksi"
             @error="(e) => (e.target as HTMLImageElement).src = ''"

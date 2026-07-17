@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import axios from 'axios'
+import { API_BASE_URL } from '@/config'
 
 const router = useRouter()
 
@@ -39,7 +40,7 @@ const displayImageUrl = computed(() => {
     const pImage = currentPhotoData.value.processed_image;
     // Jika berupa relative URL dari backend
     if (pImage.startsWith('/')) {
-      return `http://127.0.0.1:8000${pImage}`;
+      return `${API_BASE_URL}${pImage}`;
     }
     // Jika berupa base64 string
     if (pImage.length > 100 && !pImage.startsWith('http') && !pImage.startsWith('data:')) {
@@ -55,7 +56,7 @@ onMounted(async () => {
   let sessionId = localStorage.getItem('activeSessionId')
   if (!sessionId) {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/sessions')
+      const response = await axios.post(`${API_BASE_URL}/api/sessions`)
       const newSession = response.data
       if (newSession && newSession.id) {
         const newId = newSession.id.toString()
@@ -73,7 +74,7 @@ onMounted(async () => {
   } else {
     // Sinkronisasi progress jika sesi sudah ada
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/sessions/${sessionId}`)
+      const response = await axios.get(`${API_BASE_URL}/api/sessions/${sessionId}`)
       const existingSession = response.data
       if (existingSession && existingSession.detections) {
         photoCounter.value = existingSession.detections.length
@@ -86,7 +87,7 @@ onMounted(async () => {
       
       // Auto-create session baru
       try {
-        const response = await axios.post('http://127.0.0.1:8000/api/sessions')
+        const response = await axios.post(`${API_BASE_URL}/api/sessions`)
         const newSession = response.data
         if (newSession && newSession.id) {
           const newId = newSession.id.toString()
@@ -130,7 +131,7 @@ const handleFileUpload = async (event: Event) => {
 
   isUploading.value = true
   try {
-    const response = await axios.post(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}/detect`, formData, {
+    const response = await axios.post(`${API_BASE_URL}/api/sessions/${currentSessionId.value}/detect`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -183,7 +184,7 @@ const handleFinalize = async () => {
   
   isFinalizing.value = true
   try {
-    await axios.post(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}/finalize`)
+    await axios.post(`${API_BASE_URL}/api/sessions/${currentSessionId.value}/finalize`)
     
     // Hapus sesi aktif dari storage agar jika user kembali ke Deteksi, akan dibuat sesi baru
     localStorage.removeItem('activeSessionId')
@@ -206,7 +207,7 @@ const handleCancelSession = async () => {
   if (!isConfirmed) return
 
   try {
-    await axios.delete(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}`)
+    await axios.delete(`${API_BASE_URL}/api/sessions/${currentSessionId.value}`)
     
     // Bersihkan data di localStorage
     localStorage.removeItem('activeSessionId')
@@ -241,7 +242,7 @@ const handleConfirmLeave = async (leave: boolean) => {
     // User memilih batal pengamatan dan keluar
     if (currentSessionId.value) {
       try {
-        await axios.delete(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}`)
+        await axios.delete(`${API_BASE_URL}/api/sessions/${currentSessionId.value}`)
         localStorage.removeItem('activeSessionId')
       } catch (e) {
         console.error("Abaikan error saat hapus sesi:", e)
@@ -269,7 +270,7 @@ onBeforeRouteLeave(async () => {
     // Hapus sesi kosong secara diam-diam agar DB tetap bersih
     if (currentSessionId.value) {
       try {
-        await axios.delete(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}`)
+        await axios.delete(`${API_BASE_URL}/api/sessions/${currentSessionId.value}`)
         localStorage.removeItem('activeSessionId')
       } catch (e) {
         console.error("Abaikan error saat hapus sesi:", e)

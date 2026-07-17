@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { API_BASE_URL } from '@/config'
 
 const router = useRouter()
 
@@ -70,7 +71,7 @@ const hrsScoreText = computed(() => {
 const fetchLatestSession = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('http://127.0.0.1:8000/api/sessions')
+    const response = await axios.get(`${API_BASE_URL}/api/sessions`)
     
     if (response.data && response.data.length > 0) {
       console.log("Data Sesi Terakhir di Dashboard:", response.data[0])
@@ -90,7 +91,7 @@ const fetchLatestSession = async () => {
 const startNewSession = async () => {
   try {
     isCreatingSession.value = true
-    const response = await axios.post('http://127.0.0.1:8000/api/sessions')
+    const response = await axios.post(`${API_BASE_URL}/api/sessions`)
     const newSession = response.data
     
     if (newSession && newSession.id) {

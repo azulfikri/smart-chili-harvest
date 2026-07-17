@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { API_BASE_URL } from '@/config'
 
 const router = useRouter()
 
@@ -52,7 +53,7 @@ const formatDate = (dateString: string) => {
 const fetchHistory = async () => {
   isLoading.value = true
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/sessions')
+    const response = await axios.get(`${API_BASE_URL}/api/sessions`)
     if (Array.isArray(response.data)) {
       historyList.value = response.data
     }
@@ -86,7 +87,7 @@ const handleDeleteConfirm = async (confirmAction: boolean) => {
   showDeleteDialog.value = false
   if (confirmAction && sessionToDelete.value !== null) {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/sessions/${sessionToDelete.value}`)
+      await axios.delete(`${API_BASE_URL}/api/sessions/${sessionToDelete.value}`)
       historyList.value = historyList.value.filter(session => session.id !== sessionToDelete.value)
     } catch (error) {
       console.error('Error deleting session:', error)
